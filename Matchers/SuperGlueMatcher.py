@@ -3,6 +3,7 @@ from utils.tools import *
 import logging
 from Matchers.superglue.superglue import SuperGlue
 
+torch.set_grad_enabled(False)
 
 class SuperGlueMatcher(object):
     default_config = {
@@ -39,13 +40,13 @@ class SuperGlueMatcher(object):
         data['image_size1'] = torch.from_numpy(kptdescs["cur"]["image_size"]).float().to(self.device)
 
         if "torch" in kptdescs["cur"]:
-            data['scores0'] = kptdescs["ref"]["torch"]["scores"][0].unsqueeze(0)
-            data['keypoints0'] = kptdescs["ref"]["torch"]["keypoints"][0].unsqueeze(0)
-            data['descriptors0'] = kptdescs["ref"]["torch"]["descriptors"][0].unsqueeze(0)
+            data['scores0'] = kptdescs["ref"]["torch"]["scores"][0].float().to(self.device).unsqueeze(0)
+            data['keypoints0'] = kptdescs["ref"]["torch"]["keypoints"][0].float().to(self.device).unsqueeze(0)
+            data['descriptors0'] = kptdescs["ref"]["torch"]["descriptors"][0].float().to(self.device).unsqueeze(0)
 
-            data['scores1'] = kptdescs["cur"]["torch"]["scores"][0].unsqueeze(0)
-            data['keypoints1'] = kptdescs["cur"]["torch"]["keypoints"][0].unsqueeze(0)
-            data['descriptors1'] = kptdescs["cur"]["torch"]["descriptors"][0].unsqueeze(0)
+            data['scores1'] = kptdescs["cur"]["torch"]["scores"][0].float().to(self.device).unsqueeze(0)
+            data['keypoints1'] = kptdescs["cur"]["torch"]["keypoints"][0].float().to(self.device).unsqueeze(0)
+            data['descriptors1'] = kptdescs["cur"]["torch"]["descriptors"][0].float().to(self.device).unsqueeze(0)
         else:
             data['scores0'] = torch.from_numpy(kptdescs["ref"]["scores"]).float().to(self.device).unsqueeze(0)
             data['keypoints0'] = torch.from_numpy(kptdescs["ref"]["keypoints"]).float().to(self.device).unsqueeze(0)
@@ -67,6 +68,8 @@ class SuperGlueMatcher(object):
 
         matches = pred['matches0'][0].cpu().numpy()
         confidence = pred['matching_scores0'][0].cpu().detach().numpy()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
         # Sort them in the order of their confidence.
         match_conf = []

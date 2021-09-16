@@ -3,6 +3,7 @@ import logging
 from utils.tools import *
 from Detectors.superpoint.superpoint import SuperPoint
 
+torch.set_grad_enabled(False)
 
 class SuperPointDetector(object):
     default_config = {
