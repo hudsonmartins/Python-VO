@@ -14,6 +14,7 @@ class VisualOdometry(object):
         :param detector: a feature detector can detect keypoints their descriptors
         :param matcher: a keypoints matcher matching keypoints between two frames
         :param cam: camera parameters
+        :param first_frame: number of the initial frame
         """
         # feature detector and keypoints matcher
         self.detector = detector
@@ -61,11 +62,12 @@ class VisualOdometry(object):
             E, mask = cv2.findEssentialMat(matches['cur_keypoints'], matches['ref_keypoints'],
                                            focal=self.focal, pp=self.pp,
                                            method=cv2.RANSAC, prob=0.999, threshold=1.0)
+
             _, R, t, mask = cv2.recoverPose(E, matches['cur_keypoints'], matches['ref_keypoints'],
                                             focal=self.focal, pp=self.pp)
 
             # get absolute pose based on absolute_scale
-            if (absolute_scale > 0.1):
+            if(absolute_scale > 0.1):
                 self.cur_t = self.cur_t + absolute_scale * self.cur_R.dot(t)
                 self.cur_R = R.dot(self.cur_R)
 

@@ -2,9 +2,9 @@ dataset:
   name: KITTILoader
 #  root_path: /mnt/dataset_hdd/KITTI/odometry
   root_path: test_imgs
-  sequence: '00'
+  sequence: '03'
   start: 0
-
+  end: 0
 detector:
   name: HandcraftDetector
   type: ORB

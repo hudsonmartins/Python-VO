@@ -1,4 +1,5 @@
 import os
+import sys
 
 import numpy as np
 import cv2
@@ -69,30 +70,46 @@ def run(args):
     matcher = create_matcher(config["matcher"])
 
     absscale = AbosluteScaleComputer()
-    traj_plotter = TrajPlotter()
+    #traj_plotter = TrajPlotter()
 
     # log
     fname = args.config.split('/')[-1].split('.')[0]
+    fname += "_"+config["dataset"]["sequence"]
+    
+    """
+    cur_id = 0
+    if(os.path.exists):
+        log_fopen = open("results/" + fname + ".txt", mode='r')
+        lines = log_fopen.read().splitlines()
+        last_line = lines[-1]
+        cur_id = last_line[0]
+    """    
     log_fopen = open("results/" + fname + ".txt", mode='a')
-
     vo = VisualOdometry(detector, matcher, loader.cam)
+
     for i, img in enumerate(loader):
+        print(i,"/", len(loader))
         gt_pose = loader.get_cur_pose()
-        R, t = vo.update(img, absscale.update(gt_pose))
+        #R, t = vo.update(img, absscale.update(gt_pose))
+        R, t = vo.update(img, 1)
+        print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
+              R[1, 0], R[1, 1], R[1, 2], t[1, 0],
+              R[2, 0], R[2, 1], R[2, 2], t[2, 0],
+              file=log_fopen)
 
         # === log writer ==============================
-        print(i, t[0, 0], t[1, 0], t[2, 0], gt_pose[0, 3], gt_pose[1, 3], gt_pose[2, 3], file=log_fopen)
+        #print(i+cur_id, t[0, 0], t[1, 0], t[2, 0], gt_pose[0, 3], gt_pose[1, 3], gt_pose[2, 3], file=log_fopen)
 
         # === drawer ==================================
-        img1 = keypoints_plot(img, vo)
-        img2 = traj_plotter.update(t, gt_pose[:, 3])
+        #img1 = keypoints_plot(img, vo)
+        #img2 = traj_plotter.update(t, gt_pose[:, 3])
 
-        cv2.imshow("keypoints", img1)
-        cv2.imshow("trajectory", img2)
-        if cv2.waitKey(10) == 27:
-            break
+        #cv2.imshow("keypoints", img1)
+        #cv2.imshow("trajectory", img2)
+        #if cv2.waitKey(10) == 27:
+        #    break
 
-    cv2.imwrite("results/" + fname + '.png', img2)
+    #cv2.imwrite("results/" + fname + '.png', img2)
 
 
 if __name__ == "__main__":
