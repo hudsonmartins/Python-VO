@@ -10,7 +10,7 @@ class SuperPointDetector(object):
         "descriptor_dim": 256,
         "nms_radius": 4,
         "keypoint_threshold": 0.005,
-        "max_keypoints": -1,
+        "max_keypoints": 400,
         "remove_borders": 4,
         "path": Path(__file__).parent / "superpoint/superpoint_v1.pth",
         "cuda": True

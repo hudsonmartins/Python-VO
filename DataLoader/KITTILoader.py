@@ -19,7 +19,7 @@ class KITTILoader(object):
         self.config = {**self.config, **config}
         logging.info("KITTI Dataset config: ")
         logging.info(self.config)
-
+        
         if self.config["sequence"] in ["00", "01", "02"]:
             self.cam = PinholeCamera(1241.0, 376.0, 718.8560, 718.8560, 607.1928, 185.2157)
         elif self.config["sequence"] in ["03"]:
@@ -49,14 +49,14 @@ class KITTILoader(object):
             self.img_N = self.config["end"]
         else:
             self.img_N = len(glob.glob(pathname=self.config["root_path"] + "/sequences/" \
-                                                + self.config["sequence"] + "/image_0/*.png"))
+                                                + self.config["sequence"] + "/"+self.config["camera_folder"]+"/*.png"))
 
     def get_cur_pose(self):
         return self.gt_poses[self.img_id - 1]
 
     def __getitem__(self, item):
         file_name = self.config["root_path"] + "/sequences/" + self.config["sequence"] \
-                    + "/image_0/" + str(item).zfill(6) + ".png"
+                    + "/"+self.config["camera_folder"]+"/" + str(item).zfill(6) + ".png"
         img = cv2.imread(file_name)
         return img
 
@@ -66,7 +66,7 @@ class KITTILoader(object):
     def __next__(self):
         if self.img_id < self.img_N:
             file_name = self.config["root_path"] + "/sequences/" + self.config["sequence"] \
-                        + "/image_0/" + str(self.img_id).zfill(6) + ".png"
+                        + "/"+self.config["camera_folder"]+"/" + str(self.img_id).zfill(6) + ".png"
             img = cv2.imread(file_name)
 
             self.img_id += 1

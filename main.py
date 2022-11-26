@@ -1,67 +1,21 @@
 import os
 import sys
-
 import numpy as np
 import cv2
 import argparse
 import yaml
 import logging
-
-from utils.tools import plot_keypoints
-
+from utils.tools import plot_keypoints, resize_image
 from DataLoader import create_dataloader
 from Detectors import create_detector
 from Matchers import create_matcher
 from VO.VisualOdometry import VisualOdometry, AbosluteScaleComputer
-
-
-def keypoints_plot(img, vo):
-    if img.shape[2] == 1:
-        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-    return plot_keypoints(img, vo.kptdescs["cur"]["keypoints"], vo.kptdescs["cur"]["scores"])
-
-
-class TrajPlotter(object):
-    def __init__(self):
-        self.errors = []
-        self.traj = np.zeros((600, 600, 3), dtype=np.uint8)
-        pass
-
-    def update(self, est_xyz, gt_xyz):
-        x, z = est_xyz[0], est_xyz[2]
-        gt_x, gt_z = gt_xyz[0], gt_xyz[2]
-
-        est = np.array([x, z]).reshape(2)
-        gt = np.array([gt_x, gt_z]).reshape(2)
-
-        error = np.linalg.norm(est - gt)
-
-        self.errors.append(error)
-
-        avg_error = np.mean(np.array(self.errors))
-
-        # === drawer ==================================
-        # each point
-        draw_x, draw_y = int(x) + 290, int(z) + 90
-        true_x, true_y = int(gt_x) + 290, int(gt_z) + 90
-
-        # draw trajectory
-        cv2.circle(self.traj, (draw_x, draw_y), 1, (0, 255, 0), 1)
-        cv2.circle(self.traj, (true_x, true_y), 1, (0, 0, 255), 2)
-        cv2.rectangle(self.traj, (10, 20), (600, 80), (0, 0, 0), -1)
-
-        # draw text
-        text = "[AvgError] %2.4fm" % (avg_error)
-        cv2.putText(self.traj, text, (20, 40),
-                    cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1, 8)
-
-        return self.traj
-
+from scipy.spatial.transform import Rotation
 
 def run(args):
     with open(args.config, 'r') as f:
         config = yaml.load(f)
-
+    config["dataset"]["camera_folder"] = args.camera_folder
     # create dataloader
     loader = create_dataloader(config["dataset"])
     # create detector
@@ -74,43 +28,32 @@ def run(args):
 
     # log
     fname = args.config.split('/')[-1].split('.')[0]
-    fname += "_"+config["dataset"]["sequence"]
-    
-    """
-    cur_id = 0
-    if(os.path.exists):
-        log_fopen = open("results/" + fname + ".txt", mode='r')
-        lines = log_fopen.read().splitlines()
-        last_line = lines[-1]
-        cur_id = last_line[0]
-    """    
+    fname += "_"+config["dataset"]["sequence"]+"_"+config["dataset"]["camera_folder"]+"_skip_"+str(args.skip_frames)
+    if(args.timestamps_file != None):
+        timestamps_file = open(args.timestamps_file , 'rb')
+        timestamps = timestamps_file.readlines()
+        timestamps = [float(i) for i in timestamps]
     log_fopen = open("results/" + fname + ".txt", mode='a')
     vo = VisualOdometry(detector, matcher, loader.cam)
 
-    for i, img in enumerate(loader):
+    for i, img  in enumerate(loader):
         print(i,"/", len(loader))
-        gt_pose = loader.get_cur_pose()
-        #R, t = vo.update(img, absscale.update(gt_pose))
-        R, t = vo.update(img, 1)
-        print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
-              R[1, 0], R[1, 1], R[1, 2], t[1, 0],
-              R[2, 0], R[2, 1], R[2, 2], t[2, 0],
-              file=log_fopen)
-
-        # === log writer ==============================
-        #print(i+cur_id, t[0, 0], t[1, 0], t[2, 0], gt_pose[0, 3], gt_pose[1, 3], gt_pose[2, 3], file=log_fopen)
-
-        # === drawer ==================================
-        #img1 = keypoints_plot(img, vo)
-        #img2 = traj_plotter.update(t, gt_pose[:, 3])
-
-        #cv2.imshow("keypoints", img1)
-        #cv2.imshow("trajectory", img2)
-        #if cv2.waitKey(10) == 27:
-        #    break
-
-    #cv2.imwrite("results/" + fname + '.png', img2)
-
+        if(args.skip_frames == 0 or i%args.skip_frames == 0):
+            img = resize_image(img, args.image_size)
+            
+            R, t = vo.update(img, 1)
+            if(args.save_format == "kitti"):
+                print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
+                    R[1, 0], R[1, 1], R[1, 2], t[1, 0],
+                    R[2, 0], R[2, 1], R[2, 2], t[2, 0],
+                    file=log_fopen)
+            elif(args.save_format == "tum"):
+                r = Rotation.from_matrix([[R[0, 0], R[0, 1], R[0, 2]],
+                                        [R[1, 0], R[1, 1], R[1, 2]],
+                                        [R[2, 0], R[2, 1], R[2, 2]]])
+                q = r.as_quat()
+                print(str(timestamps[i]), t[0, 0], t[1, 0], t[2, 0], q[0], q[1], q[2], q[3],
+                    file=log_fopen)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='python_vo')
@@ -118,6 +61,11 @@ if __name__ == "__main__":
                         help='config file')
     parser.add_argument('--logging', type=str, default='INFO',
                         help='logging level: NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL')
+    parser.add_argument('--camera_folder', type=str, default='image_0', help='folder to desired camera')
+    parser.add_argument('--skip_frames', type=int, default=0, help='Number of frames to skip before estimating motion')
+    parser.add_argument('--timestamps_file', type=str, default=None, help='Path to KITTI times.txt')
+    parser.add_argument('--save_format', type=str, default="kitti", help='Format to save data, if tum the timestamps file is needed')
+    parser.add_argument('--image_size', type=int, default=720)
 
     args = parser.parse_args()
 
