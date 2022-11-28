@@ -41,7 +41,7 @@ class FrameByFrameMatcher(object):
         else:
             raise ValueError(f"Unknown matcher type: {self.matcher_type}")
 
-    def match(self, kptdescs):
+    def match(self, kptdescs, images=None):
         self.good = []
         # get shape of the descriptor
         self.descriptor_shape = kptdescs["ref"]["descriptors"].shape[1]

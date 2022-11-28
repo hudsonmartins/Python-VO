@@ -57,7 +57,8 @@ class VisualOdometry(object):
             self.kptdescs["cur"] = kptdesc
             self.img0 = image
             # match keypoints
-            matches = self.matcher(self.kptdescs, images=[self.img0, self.img1])
+            matches = self.matcher(self.kptdescs)
+            #matches = self.matcher(self.kptdescs, images=[self.img0, self.img1])
 
             # compute relative R,t between ref and cur frame
             E, mask = cv2.findEssentialMat(matches['cur_keypoints'], matches['ref_keypoints'],

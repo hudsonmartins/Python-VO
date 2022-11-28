@@ -11,7 +11,6 @@ from utils.PinholeCamera import PinholeCamera
 
 class TUMRGBLoader(object):
     default_config = {
-        'root_path': '/mnt/dataset_hdd/tumrgbd',
         'scene': "rgbd_dataset_freiburg1_360",
         "start": 0,
     }

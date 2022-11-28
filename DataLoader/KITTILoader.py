@@ -9,7 +9,6 @@ from utils.PinholeCamera import PinholeCamera
 
 class KITTILoader(object):
     default_config = {
-        "root_path": "../test_imgs",
         "sequence": "00",
         "start": 0
     }

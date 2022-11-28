@@ -15,6 +15,7 @@ from scipy.spatial.transform import Rotation
 def run(args):
     with open(args.config, 'r') as f:
         config = yaml.load(f)
+    config["dataset"]["root_path"] = args.root_path
     config["dataset"]["camera_folder"] = args.camera_folder
     # create dataloader
     loader = create_dataloader(config["dataset"])
@@ -57,14 +58,15 @@ def run(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='python_vo')
+    parser.add_argument('--root_path', type=str, default='datasets/kitti', help='path to the dataset')
     parser.add_argument('--config', type=str, default='params/kitti_superpoint_supergluematch.yaml',
                         help='config file')
     parser.add_argument('--logging', type=str, default='INFO',
                         help='logging level: NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL')
     parser.add_argument('--camera_folder', type=str, default='image_0', help='folder to desired camera')
     parser.add_argument('--skip_frames', type=int, default=0, help='Number of frames to skip before estimating motion')
-    parser.add_argument('--timestamps_file', type=str, default=None, help='Path to KITTI times.txt')
     parser.add_argument('--save_format', type=str, default="kitti", help='Format to save data, if tum the timestamps file is needed')
+    parser.add_argument('--timestamps_file', type=str, default=None, help='Path to the timestamps file if using tum format')
     parser.add_argument('--image_size', type=int, default=720)
 
     args = parser.parse_args()

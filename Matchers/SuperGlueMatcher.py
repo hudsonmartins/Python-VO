@@ -32,7 +32,7 @@ class SuperGlueMatcher(object):
         logging.info("creating SuperGlue matcher...")
         self.superglue = SuperGlue(self.config).to(self.device)
 
-    def __call__(self, kptdescs):
+    def __call__(self, kptdescs, images=None):
         # setup data for superglue
         logging.debug("prepare input data for superglue...")
         data = {}

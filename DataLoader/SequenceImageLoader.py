@@ -7,7 +7,6 @@ import logging
 
 class SequenceImageLoader(object):
     default_config = {
-        "root_path": "/home/zxm/Pictures/Webcam",
         "start": 0,
         "format": "jpg"
     }
