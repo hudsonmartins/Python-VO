@@ -1,7 +1,5 @@
 dataset:
   name: KITTILoader
-#  root_path: /mnt/dataset_hdd/KITTI/odometry
-  root_path: /home/hudson/Desktop/Unicamp/Doutorado/Projeto/datasets/kitti/
   sequence: '10'
   start: 0
   end: 0

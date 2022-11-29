@@ -1,8 +1,9 @@
 dataset:
-  name: TUMRGBLoader
-  scene: rgbd_dataset_freiburg1_360
+  name: KITTILoader
+  sequence: '04'
   start: 0
-
+  end: 0
+  
 detector:
   name: SuperPointDetector
   descriptor_dim: 256
@@ -10,7 +11,7 @@ detector:
   keypoint_threshold: 0.005
   max_keypoints: -1
   remove_borders: 4
-  cuda: 1
+  cuda: 0
 
 matcher:
   name: SuperGlueMatcher

@@ -14,7 +14,7 @@ from scipy.spatial.transform import Rotation
 
 def run(args):
     with open(args.config, 'r') as f:
-        config = yaml.load(f)
+        config = yaml.safe_load(f)
     config["dataset"]["root_path"] = args.root_path
     config["dataset"]["camera_folder"] = args.camera_folder
     # create dataloader
@@ -34,6 +34,7 @@ def run(args):
         timestamps_file = open(args.timestamps_file , 'rb')
         timestamps = timestamps_file.readlines()
         timestamps = [float(i) for i in timestamps]
+    os.makedirs('results', exist_ok=True)
     log_fopen = open("results/" + fname + ".txt", mode='a')
     vo = VisualOdometry(detector, matcher, loader.cam)
 
