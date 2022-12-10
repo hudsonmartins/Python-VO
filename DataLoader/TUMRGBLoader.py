@@ -71,14 +71,10 @@ class TUMRGBLoader(object):
             lines = f.readlines()
             lines = np.array([line.strip().split() for line in lines[2:]])
 
-            # time_stamps = [float(stamp) for stamp in lines[:, 0]]
             rgb_list = lines[:, 1]
-            # depth_list = lines[:, 2]
-            poses = [self.pose_transform(pose) for pose in lines[:, 3:]]
             imgs = [os.path.join(root_path, scene, img) for img in rgb_list]
 
             self.imgs += imgs
-            self.poses += poses
 
     def __iter__(self):
         return self
@@ -97,10 +93,6 @@ class TUMRGBLoader(object):
 
     def __len__(self):
         return self.img_N - self.config["start"]
-
-    def get_cur_pose(self):
-        return self.poses[self.img_id - 1]
-
 
 if __name__ == "__main__":
     loader = TUMRGBLoader()

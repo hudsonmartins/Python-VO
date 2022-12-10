@@ -1,7 +1,5 @@
 from .FrameByFrameMatcher import FrameByFrameMatcher
 from .SuperGlueMatcher import SuperGlueMatcher
-from .SuperGlueWithDepthMatcher import SuperGlueWithDepthMatcher
-from .SuperGluePatchesMatcher import SuperGluePatchesMatcher
 
 
 def create_matcher(conf):
