@@ -7,13 +7,10 @@ from evo.core import sync
 from evo.core import trajectory
 
 
-def show_metrics(ref_file, est_file, file_pattern='tum'):
-    if(file_pattern == 'tum'):
-        traj_ref = file_interface.read_tum_trajectory_file(ref_file)
-        traj_est = file_interface.read_tum_trajectory_file(est_file)
-    elif(file_pattern == 'kitti'):
-        traj_ref = file_interface.read_kitti_poses_file(ref_file)
-        traj_est = file_interface.read_kitti_poses_file(est_file)
+def show_metrics(ref_file, est_file):
+    traj_ref = file_interface.read_tum_trajectory_file(ref_file)
+    traj_est = file_interface.read_tum_trajectory_file(est_file)
+   
     max_diff = 0.01
     traj_ref, traj_est = sync.associate_trajectories(traj_ref, traj_est, max_diff)
     traj_est.align(traj_ref, correct_scale=True, correct_only_scale=False)
@@ -65,8 +62,7 @@ def show_metrics(ref_file, est_file, file_pattern='tum'):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("ref_file", help="Ground truth file")
-    parser.add_argument("est_file", help="Odometry estimation")
-    parser.add_argument("--format", help="File format, either tum or kitti")
+    parser.add_argument("ref_file", help="Ground truth file (it needs to be a in TUM format)")
+    parser.add_argument("est_file", help="Odometry estimation (it needs to be a in TUM format)")
     args = parser.parse_args()
-    show_metrics(args.ref_file, args.est_file, args.format)
+    show_metrics(args.ref_file, args.est_file)
