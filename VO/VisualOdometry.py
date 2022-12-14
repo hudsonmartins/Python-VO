@@ -2,8 +2,8 @@
 
 import numpy as np
 import cv2
-
-
+from utils.tools import plot_keypoints, plot_matches
+from skimage import io
 class VisualOdometry(object):
     """
     A simple frame by frame visual odometry
@@ -34,7 +34,7 @@ class VisualOdometry(object):
         self.cur_R = None
         self.cur_t = None
 
-    def update(self, image, absolute_scale=1):
+    def update(self, image, absolute_scale=1, get_viz=False):
         """
         update a new image to visual odometry, and compute the pose
         :param image: input image
@@ -43,7 +43,7 @@ class VisualOdometry(object):
         """
 
         kptdesc = self.detector(image)
-
+        kpts_img, matches_img = [], []
         # first frame
         if self.index == 0:
             # save keypoints and descriptors
@@ -58,8 +58,12 @@ class VisualOdometry(object):
             self.img0 = image
             # match keypoints
             matches = self.matcher(self.kptdescs)
-            #matches = self.matcher(self.kptdescs, images=[self.img0, self.img1])
-
+            if(get_viz):
+                matches_img = plot_matches(self.img0, self.img1, 
+                                           matches['cur_keypoints'],
+                                           matches['ref_keypoints'], 
+                                           matches['match_score'])
+                
             # compute relative R,t between ref and cur frame
             E, mask = cv2.findEssentialMat(matches['cur_keypoints'], matches['ref_keypoints'],
                                            focal=self.focal, pp=self.pp,
@@ -73,10 +77,13 @@ class VisualOdometry(object):
                 self.cur_t = self.cur_t + absolute_scale * self.cur_R.dot(t)
                 self.cur_R = R.dot(self.cur_R)
 
+        if(get_viz):
+            kpts_img = plot_keypoints(image, self.kptdescs["cur"]["keypoints"])
+        
         self.kptdescs["ref"] = self.kptdescs["cur"]
         self.img1 = self.img0
         self.index += 1
-        return self.cur_R, self.cur_t
+        return self.cur_R, self.cur_t, [kpts_img, matches_img]
 
 
 class AbosluteScaleComputer(object):

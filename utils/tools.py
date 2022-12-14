@@ -125,7 +125,7 @@ def plot_keypoints(image, kpts, scores=None):
 
     else:
         for x, y in kpts:
-            cv2.drawMarker(image, (x, y), (0, 255, 0), cv2.MARKER_CROSS, 6)
+            cv2.drawMarker(image, (x, y), (0, 0, 0), cv2.MARKER_CROSS, 6)
 
     return image
 
@@ -169,19 +169,19 @@ def plot_matches(image0, image1, kpts0, kpts1, scores=None, layout="lr"):
         color = (np.array(color[:, :3]) * 255).astype(int)[:, ::-1]
     else:
         color = np.zeros((kpts0.shape[0], 3), dtype=int)
-        color[:, 1] = 255
+        #color[:, 1] = 255
 
     for (x0, y0), (x1, y1), c in zip(kpts0, kpts1, color):
         c = c.tolist()
         if layout == "lr":
             cv2.line(out, (x0, y0), (x1 + W0, y1), color=c, thickness=1, lineType=cv2.LINE_AA)
             # display line end-points as circles
-            cv2.circle(out, (x0, y0), 2, c, -1, lineType=cv2.LINE_AA)
-            cv2.circle(out, (x1 + W0, y1), 2, c, -1, lineType=cv2.LINE_AA)
+            #cv2.circle(out, (x0, y0), 2, c, -1, lineType=cv2.LINE_AA)
+            #cv2.circle(out, (x1 + W0, y1), 2, c, -1, lineType=cv2.LINE_AA)
         elif layout == "ud":
             cv2.line(out, (x0, y0), (x1, y1 + H0), color=c, thickness=1, lineType=cv2.LINE_AA)
             # display line end-points as circles
-            cv2.circle(out, (x0, y0), 2, c, -1, lineType=cv2.LINE_AA)
-            cv2.circle(out, (x1, y1 + H0), 2, c, -1, lineType=cv2.LINE_AA)
+            #cv2.circle(out, (x0, y0), 2, c, -1, lineType=cv2.LINE_AA)
+            #cv2.circle(out, (x1, y1 + H0), 2, c, -1, lineType=cv2.LINE_AA)
 
     return out

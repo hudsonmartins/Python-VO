@@ -25,6 +25,7 @@ def run(args):
     matcher = create_matcher(config['matcher'])
 
     # log
+    fname = ''
     if(args.traj_file_name == None):
         fname = args.config.split('/')[-1].split('.')[0]
         fname += '_'+config['dataset']['sequence']+'_'+config['dataset']['camera_folder']+'_skip_'+str(args.skip_frames)+'.txt'
@@ -42,10 +43,9 @@ def run(args):
 
     for i, img  in enumerate(loader):
         print(i,'/', len(loader))
-        if(args.skip_frames == 0 or i%args.skip_frames == 0):
-            #img = resize_image(img, args.image_size)
+        if(args.skip_frames == 0 or i%args.skip_frames == 0):           
             
-            R, t = vo.update(img, 1)
+            R, t, viz = vo.update(img, 1, args.save_viz)
             if(args.save_format == 'kitti'):
                 print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
                     R[1, 0], R[1, 1], R[1, 2], t[1, 0],
@@ -58,6 +58,16 @@ def run(args):
                 q = r.as_quat()
                 print(str(timestamps[i]), t[0, 0], t[1, 0], t[2, 0], q[0], q[1], q[2], q[3],
                     file=log_fopen)
+            
+            if(args.save_viz):
+                kpts_dir = os.path.join(args.output_path, 'kpts', fname.split('.')[0])
+                matches_dir = os.path.join(args.output_path, 'matches', fname.split('.')[0])
+                os.makedirs(kpts_dir, exist_ok=True)
+                os.makedirs(matches_dir, exist_ok=True)
+                if(len(viz[0]) > 0):
+                    cv2.imwrite(os.path.join(kpts_dir, str(i)+'.png'), viz[0])
+                if(len(viz[1]) > 0):
+                    cv2.imwrite(os.path.join(matches_dir, str(i)+'.png'), viz[1])
 
 
 if __name__ == '__main__':
@@ -74,6 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--traj_file_name', type=str, default=None, help='Name of the trajectory file that will be saved in the output_path')
     parser.add_argument('--timestamps_file', type=str, default=None, help='Path to the timestamps file if using tum format')
     parser.add_argument('--image_size', type=int, default=720)
+    parser.add_argument('--save_viz', action='store_true')
 
     args = parser.parse_args()
 
