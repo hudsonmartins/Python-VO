@@ -5,12 +5,12 @@ import cv2
 import argparse
 import yaml
 import logging
-from utils.tools import resize_image
+from scipy.spatial.transform import Rotation
 from DataLoader import create_dataloader
 from Detectors import create_detector
 from Matchers import create_matcher
 from VO.VisualOdometry import VisualOdometry, AbosluteScaleComputer
-from scipy.spatial.transform import Rotation
+from utils.tools import plot_keypoints, plot_matches
 
 def run(args):
     with open(args.config, 'r') as f:
@@ -40,12 +40,13 @@ def run(args):
     os.makedirs(args.output_path, exist_ok=True)
     log_fopen = open(os.path.join(args.output_path, fname), mode='a')
     vo = VisualOdometry(detector, matcher, loader.cam)
-
+    last_img = None
+    matches_img = None
     for i, img  in enumerate(loader):
         print(i,'/', len(loader))
         if(args.skip_frames == 0 or i%args.skip_frames == 0):           
             
-            R, t, viz = vo.update(img, 1, args.save_viz)
+            R, t, kptdescs, matches = vo.update(img, 1)
             if(args.save_format == 'kitti'):
                 print(R[0, 0], R[0, 1], R[0, 2], t[0, 0],
                     R[1, 0], R[1, 1], R[1, 2], t[1, 0],
@@ -60,14 +61,34 @@ def run(args):
                     file=log_fopen)
             
             if(args.save_viz):
+                if(last_img is not None and matches is not None):
+                    matches_img = plot_matches(last_img, img, 
+                                            matches['cur_keypoints'],
+                                            matches['ref_keypoints'], 
+                                            matches['match_score'])
+                kpts_img = plot_keypoints(img, kptdescs["cur"]["keypoints"])
+
                 kpts_dir = os.path.join(args.output_path, 'kpts', fname.split('.')[0])
                 matches_dir = os.path.join(args.output_path, 'matches', fname.split('.')[0])
                 os.makedirs(kpts_dir, exist_ok=True)
                 os.makedirs(matches_dir, exist_ok=True)
-                if(len(viz[0]) > 0):
-                    cv2.imwrite(os.path.join(kpts_dir, str(i)+'.png'), viz[0])
-                if(len(viz[1]) > 0):
-                    cv2.imwrite(os.path.join(matches_dir, str(i)+'.png'), viz[1])
+                cv2.imwrite(os.path.join(kpts_dir, str(i)+'.png'), kpts_img)
+                if(matches_img is not None):
+                    cv2.imwrite(os.path.join(matches_dir, str(i)+'.png'), matches_img)
+            
+           
+            if(args.save_raw_outputs):
+                raw_outputs_dir = os.path.join(args.output_path, 'raw_outputs', fname.split('.')[0])
+                os.makedirs(raw_outputs_dir, exist_ok=True)
+                np.save(os.path.join(raw_outputs_dir, str(i)+'_kpts.npy'), kptdescs["cur"]["keypoints"])
+                np.save(os.path.join(raw_outputs_dir, str(i)+'_desc.npy'), kptdescs["cur"]["descriptors"])
+
+                if(matches is not None):
+                    matches_scores = np.concatenate((matches['cur_keypoints'], 
+                                                     matches['match_score'].reshape(-1,1)), axis=1)
+                    np.save(os.path.join(raw_outputs_dir, str(i)+'_matches.npy'), matches_scores)
+            
+            last_img = img
 
 
 if __name__ == '__main__':
@@ -85,6 +106,7 @@ if __name__ == '__main__':
     parser.add_argument('--timestamps_file', type=str, default=None, help='Path to the timestamps file if using tum format')
     parser.add_argument('--image_size', type=int, default=720)
     parser.add_argument('--save_viz', action='store_true')
+    parser.add_argument('--save_raw_outputs', action='store_true', help='Save raw outputs of the detector and matcher')
 
     args = parser.parse_args()
 
