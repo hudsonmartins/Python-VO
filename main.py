@@ -78,6 +78,13 @@ def run(args):
             
            
             if(args.save_raw_outputs):
+                """
+                Raw outputs: 
+                   Keypoints (N, 2) -- N Keypoints coordinates inside the image (x, y)
+                   Descriptors (N, D): N Descriptions vector with D dimensions
+                   Matches (M, 3) -- Index of the M matched keypoints in each image and 
+                                        the matching score (kpt0_id, kpt1_id, score)
+                """
                 raw_outputs_dir = os.path.join(args.output_path, 'raw_outputs', fname.split('.')[0])
                 os.makedirs(raw_outputs_dir, exist_ok=True)
                 np.save(os.path.join(raw_outputs_dir, str(i)+'_kpts.npy'), kptdescs["cur"]["keypoints"])
@@ -86,7 +93,7 @@ def run(args):
                 if(matches is not None):
                     matches_scores = np.concatenate((matches['cur_keypoints'], 
                                                      matches['match_score'].reshape(-1,1)), axis=1)
-                    np.save(os.path.join(raw_outputs_dir, str(i)+'_matches.npy'), matches_scores)
+                    np.save(os.path.join(raw_outputs_dir, str(i-1)+'_'+str(i)+'_matches.npy'), matches_scores)
             
             last_img = img
 
