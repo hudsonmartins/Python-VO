@@ -4,10 +4,9 @@ log.configure_logging(verbose=True, debug=False, silent=False)
 import numpy as np
 from evo.tools import file_interface
 from evo.core import sync
-from evo.core import trajectory
 
 
-def show_metrics(ref_file, est_file):
+def get_metrics(ref_file, est_file):
     traj_ref = file_interface.read_tum_trajectory_file(ref_file)
     traj_est = file_interface.read_tum_trajectory_file(est_file)
    
@@ -21,8 +20,7 @@ def show_metrics(ref_file, est_file):
     ape_metric = metrics.APE(pose_relation)
     ape_metric.process_data(data)
     ape_stat = ape_metric.get_statistic(metrics.StatisticsType.rmse)
-    print("APE: ", round(ape_stat,4))
-    print("--------------------------------------------------------")
+    print('APE: ', round(ape_stat, 4))
 
     #RPE
     # normal mode
@@ -55,14 +53,23 @@ def show_metrics(ref_file, est_file):
             break
 
     rpe_rot = np.sum(seq_rpe)/len(seq_rpe)
-    print("--------------------------------------------------------")
-    print("RPE: trans = ", round(rpe_trans*100,4),"% rot = ", round(rpe_rot,4), "deg/m")
+    print('RPE: trans = ', round(rpe_trans*100,4),'% rot = ', round(rpe_rot,4), 'deg/m')
+    return ape_stat, rpe_trans, rpe_rot
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("ref_file", help="Ground truth file (it needs to be a in TUM format)")
-    parser.add_argument("est_file", help="Odometry estimation (it needs to be a in TUM format)")
+    parser.add_argument('ref_file', help='Ground truth file (it needs to be a in TUM format)')
+    parser.add_argument('est_file', help='Odometry estimation (it needs to be a in TUM format)')
+    parser.add_argument('--output_path', help='Path to the output file (default: None)')
     args = parser.parse_args()
-    show_metrics(args.ref_file, args.est_file)
+    ape, rpe_t, rpe_r = get_metrics(args.ref_file, args.est_file)
+    if(args.output_path):
+        with open(args.output_path, 'w') as f:
+            f.write('Ground-truth file: ' + args.ref_file+'\n') 
+            f.write('Estimation file: ' + args.est_file+'\n')
+            f.write('Metrics:\n')
+            f.write(' APE: ' + str(ape)+' (m)\n') 
+            f.write(' RPE Trans: ' + str(rpe_t*100)+' %\n')
+            f.write(' RPE Rot: ' + str(rpe_r)+' (deg/m)\n')
