@@ -1,4 +1,5 @@
 from .KITTILoader import KITTILoader
+from .EurocLoader import EurocLoader
 from .SequenceImageLoader import SequenceImageLoader
 from .TUMRGBLoader import TUMRGBLoader
 

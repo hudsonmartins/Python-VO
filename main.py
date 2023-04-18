@@ -1,5 +1,6 @@
 import os
 import sys
+import csv
 import numpy as np
 import cv2
 import argparse
@@ -32,10 +33,15 @@ def run(args):
     else:
         fname = args.traj_file_name
 
-    if(args.timestamps_file != None):
-        timestamps_file = open(args.timestamps_file , 'rb')
-        timestamps = timestamps_file.readlines()
-        timestamps = [float(i) for i in timestamps]
+    if(args.timestamps_file != None and args.save_format == 'tum'):
+        if(config['dataset']['name'] == 'KITTILoader'):
+            timestamps_file = open(args.timestamps_file , 'rb')
+            timestamps = timestamps_file.readlines()
+            timestamps = [float(i) for i in timestamps]
+        elif(config['dataset']['name'] == 'EurocLoader'):
+            with open(args.timestamps_file, 'r') as f:
+                reader = csv.reader(f, delimiter=',')
+                timestamps = [float(row[0])/1e9 for row in reader if not('timestamp' in row[0])]
     
     os.makedirs(args.output_path, exist_ok=True)
     log_fopen = open(os.path.join(args.output_path, fname), mode='a')
@@ -99,6 +105,7 @@ def run(args):
 
 
 if __name__ == '__main__':
+    
     parser = argparse.ArgumentParser(description='python_vo')
     parser.add_argument('--root_path', type=str, default='datasets/kitti', help='path to the dataset')
     parser.add_argument('--config', type=str, default='params/kitti_superpoint_supergluematch.yaml',
