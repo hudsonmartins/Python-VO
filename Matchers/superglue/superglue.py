@@ -225,7 +225,10 @@ class SuperGlue(nn.Module):
         # path = Path(__file__).parent
         # path = path / 'weights/superglue_{}.pth'.format(self.config['weights'])
         path = self.config['path']
-        self.load_state_dict(torch.load(path))
+        #self.load_state_dict(torch.load(path))
+        self.kenc.load_state_dict(torch.load(path)['kenc'])
+        self.gnn.load_state_dict(torch.load(path)['gnn'])
+        self.final_proj.load_state_dict(torch.load(path)['final_proj'])
         print('Loaded SuperGlue model (\"{}\" weights)'.format(
             self.config['weights']))
 
