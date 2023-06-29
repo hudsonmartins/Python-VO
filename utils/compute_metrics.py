@@ -34,7 +34,7 @@ def get_metrics(ref_file, est_file):
         try:
             rpe_metric = metrics.RPE(pose_relation, delta, delta_unit, 0.1, all_pairs)
             rpe_metric.process_data(data)
-            rpe_stat = rpe_metric.get_statistic(metrics.StatisticsType.mean)
+            rpe_stat = rpe_metric.get_statistic(metrics.StatisticsType.rmse)
             seq_rpe.append(rpe_stat/delta)
         except:
             break
@@ -47,7 +47,7 @@ def get_metrics(ref_file, est_file):
             # all pairs mode
             rpe_metric = metrics.RPE(pose_relation, delta, delta_unit, 0.1, all_pairs)
             rpe_metric.process_data(data)
-            rpe_stat = rpe_metric.get_statistic(metrics.StatisticsType.mean)
+            rpe_stat = rpe_metric.get_statistic(metrics.StatisticsType.rmse)
             seq_rpe.append(rpe_stat)#/delta)
         except:
             break
